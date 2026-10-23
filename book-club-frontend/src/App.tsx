@@ -5,6 +5,7 @@ import Footer from "./components/layout/Footer";
 import HomePage from "./pages/Home";
 import MyShelf from "./pages/MyShelf";
 import BookClubs from "./pages/BookClubs";
+import ClubDetails from "./pages/ClubDetails";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/my-shelf" element={<MyShelf />} />
             <Route path="/book-clubs" element={<BookClubs />} />
+            <Route path="/clubs/:id" element={<ClubDetails />} />
           </Routes>
         </main>
         <div className="px-5 md:px-10 xl:px-16">

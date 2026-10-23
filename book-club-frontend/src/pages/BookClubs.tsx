@@ -18,7 +18,6 @@ import { API_BASE_URL } from "@/constants/baseUrl";
 import type { BookClub } from "@/types/book";
 import ClubCard from "@/components/clubs/ClubCard";
 import CreateClubModal from "@/components/clubs/CreateClubModal";
-import ClubDetailsModal from "@/components/clubs/ClubDetailsModal";
 
 export default function BookClubs() {
   const [publicClubs, setPublicClubs] = useState<BookClub[]>([]);
@@ -27,7 +26,9 @@ export default function BookClubs() {
   const [pageError, setPageError] = useState<string | null>(null);
 
   // Tab & Filter States
-  const [activeTab, setActiveTab] = useState<"discover" | "my-clubs">("discover");
+  const [activeTab, setActiveTab] = useState<"discover" | "my-clubs">(
+    "discover",
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"popular" | "books" | "name">("popular");
 
@@ -41,10 +42,6 @@ export default function BookClubs() {
 
   // Join Action State
   const [joiningClubId, setJoiningClubId] = useState<string | null>(null);
-
-  // Details Modal State
-  const [selectedClub, setSelectedClub] = useState<BookClub | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   // Feedback Toast
   const [toast, setToast] = useState<{
@@ -160,16 +157,13 @@ export default function BookClubs() {
       }
 
       setIsCreateModalOpen(false);
-      showToast(`Reading Circle "${data.name}" was founded successfully!`, "success");
+      showToast(
+        `Reading Circle "${data.name}" was founded successfully!`,
+        "success",
+      );
 
       // Refresh lists
       await refreshClubs();
-
-      // Automatically open the new club details
-      if (resData.id) {
-        setSelectedClub(resData);
-        setIsDetailsModalOpen(true);
-      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to create club.";
       setCreateError(msg);
@@ -193,7 +187,10 @@ export default function BookClubs() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          showToast("Please sign in in the top navigation bar to join clubs.", "error");
+          showToast(
+            "Please sign in in the top navigation bar to join clubs.",
+            "error",
+          );
           return;
         }
         throw new Error(data.message || "Could not join reading club.");
@@ -203,7 +200,9 @@ export default function BookClubs() {
       await refreshClubs();
     } catch (err) {
       showToast(
-        err instanceof Error ? err.message : "Something went wrong joining the club.",
+        err instanceof Error
+          ? err.message
+          : "Something went wrong joining the club.",
         "error",
       );
     } finally {
@@ -241,18 +240,18 @@ export default function BookClubs() {
 
   // Total members across all public clubs for header stat
   const totalReadersCount = useMemo(() => {
-    return publicClubs.reduce((acc, curr) => acc + (curr._count?.members ?? 1), 0);
+    return publicClubs.reduce(
+      (acc, curr) => acc + (curr._count?.members ?? 1),
+      0,
+    );
   }, [publicClubs]);
 
   const totalBooksCount = useMemo(() => {
-    return publicClubs.reduce((acc, curr) => acc + (curr._count?.books ?? 0), 0);
+    return publicClubs.reduce(
+      (acc, curr) => acc + (curr._count?.books ?? 0),
+      0,
+    );
   }, [publicClubs]);
-
-  // Open club details modal
-  function handleOpenDetails(club: BookClub) {
-    setSelectedClub(club);
-    setIsDetailsModalOpen(true);
-  }
 
   return (
     <div className="min-h-screen py-10 sm:py-14 text-[#2b2420]">
@@ -298,12 +297,16 @@ export default function BookClubs() {
             {/* Headline */}
             <h1 className="mt-4 font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#2b2420] leading-[1.1]">
               Read together, <br />
-              <em className="text-[#8b4513] not-italic font-serif">think deeper.</em>
+              <em className="text-[#8b4513] not-italic font-serif">
+                think deeper.
+              </em>
             </h1>
 
             {/* Subtitle */}
             <p className="mt-4 text-base sm:text-lg leading-relaxed text-[#6b5d52]">
-              Gather with book lovers across the world. Share monthly shelves, compare annotations, and discuss stories that linger long after the final page.
+              Gather with book lovers across the world. Share monthly shelves,
+              compare annotations, and discuss stories that linger long after
+              the final page.
             </p>
 
             {/* Live Stats Pill Row */}
@@ -474,7 +477,9 @@ export default function BookClubs() {
               Sign In to View Your Clubs
             </h3>
             <p className="mt-2.5 max-w-md text-sm text-[#6b5d52] leading-relaxed">
-              Use the Google sign-in button in the top navigation bar to create and join reading circles, track shared bookshelves, and take part in salon conversations.
+              Use the Google sign-in button in the top navigation bar to create
+              and join reading circles, track shared bookshelves, and take part
+              in salon conversations.
             </p>
             <button
               type="button"
@@ -564,7 +569,6 @@ export default function BookClubs() {
                   club={club}
                   isMember={isMember}
                   onJoin={handleJoinClub}
-                  onOpenDetails={handleOpenDetails}
                   isJoining={isJoining}
                 />
               );
@@ -580,20 +584,6 @@ export default function BookClubs() {
         onSubmit={handleCreateClub}
         loading={createLoading}
         errorMessage={createError}
-      />
-
-      {/* Club Details & Discussions Modal */}
-      <ClubDetailsModal
-        club={selectedClub}
-        isOpen={isDetailsModalOpen}
-        onClose={() => setIsDetailsModalOpen(false)}
-        isMember={Boolean(
-          selectedClub && myClubs.some((c) => c.id === selectedClub.id),
-        )}
-        onJoin={handleJoinClub}
-        isJoining={Boolean(
-          selectedClub && joiningClubId === selectedClub.id,
-        )}
       />
     </div>
   );

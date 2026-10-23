@@ -1,11 +1,21 @@
-import { Users, BookOpen, Globe, Lock, UserPlus, Check, MessageSquare, ArrowRight, LoaderCircle } from "lucide-react";
+import {
+  Users,
+  BookOpen,
+  Globe,
+  Lock,
+  UserPlus,
+  Check,
+  MessageSquare,
+  ArrowRight,
+  LoaderCircle,
+} from "lucide-react";
 import type { BookClub } from "@/types/book";
+import { Link } from "react-router-dom";
 
 interface ClubCardProps {
   club: BookClub;
   isMember: boolean;
   onJoin?: (clubId: string) => Promise<void> | void;
-  onOpenDetails: (club: BookClub) => void;
   isJoining?: boolean;
 }
 
@@ -61,7 +71,6 @@ export default function ClubCard({
   club,
   isMember,
   onJoin,
-  onOpenDetails,
   isJoining = false,
 }: ClubCardProps) {
   const palette = getClubPalette(club.id || club.name);
@@ -163,14 +172,13 @@ export default function ClubCard({
         <div className="mt-4 flex items-center gap-2">
           {/* Join / Status Button */}
           {isMember ? (
-            <button
-              type="button"
-              onClick={() => onOpenDetails(club)}
+            <Link
+              to={`/clubs/${club.id}`}
               className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#2b2420]/20 bg-white py-2 px-3 text-xs font-semibold text-[#2b2420] transition-colors hover:border-[#8b4513] hover:text-[#8b4513]"
             >
               <MessageSquare size={14} />
               Open Salon
-            </button>
+            </Link>
           ) : isPrivate ? (
             <button
               type="button"
@@ -202,14 +210,13 @@ export default function ClubCard({
           )}
 
           {/* Details / Discussions trigger button */}
-          <button
-            type="button"
-            onClick={() => onOpenDetails(club)}
+          <Link
+            to={`/clubs/${club.id}`}
             aria-label={`View ${club.name} details`}
             className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-[#2b2420]/15 bg-white text-[#6b5d52] transition-colors hover:border-[#8b4513] hover:bg-[#8b4513] hover:text-[#f5f0e8]"
           >
             <ArrowRight size={15} />
-          </button>
+          </Link>
         </div>
       </div>
     </article>
