@@ -1,4 +1,5 @@
-import { API_BASE_URL, GOOGLE_CLIENT_ID } from "@/constants/baseUrl";
+import { GOOGLE_CLIENT_ID } from "@/constants/baseUrl";
+import { useAuthStore } from "@/stores/authStore";
 import { useEffect, useRef, useState } from "react";
 
 interface GoogleCredentialResponse {
@@ -32,74 +33,44 @@ declare global {
   }
 }
 
-interface SignedInUser {
-  googleId: string;
-  email: string;
-  name: string;
-  picture: string | null;
-}
-
 export default function Header() {
   const googleButtonRef = useRef<HTMLDivElement>(null);
-  const [user, setUser] = useState<SignedInUser | null>(null);
-  const [authError, setAuthError] = useState("");
-  const [authLoading, setAuthLoading] = useState(false);
+
   const [googleReady, setGoogleReady] = useState(false);
+
+  // Authentication state comes from Zustand.
+  const user = useAuthStore((state) => state.user);
+  const authLoading = useAuthStore((state) => state.loading);
+  const authError = useAuthStore((state) => state.error);
+  const signInWithGoogle = useAuthStore((state) => state.signInWithGoogle);
+  const signOut = useAuthStore((state) => state.signOut);
+  const clearError = useAuthStore((state) => state.clearError);
 
   useEffect(() => {
     let cancelled = false;
     let interval: number | undefined;
 
     function initializeGoogleSignIn() {
-      if (
-        cancelled ||
-        !window.google ||
-        !googleButtonRef.current ||
-        !GOOGLE_CLIENT_ID
-      ) {
+      const google = window.google;
+      const buttonElement = googleButtonRef.current;
+
+      if (cancelled || !google || !buttonElement || !GOOGLE_CLIENT_ID) {
         return;
       }
 
-      window.google.accounts.id.initialize({
+      google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
-        callback: async ({ credential }) => {
-          setAuthLoading(true);
-          setAuthError("");
+        callback: async ({ credential: idToken }) => {
+          clearError();
 
-          try {
-            const res = await fetch(`${API_BASE_URL}/auth/google`, {
-              method: "POST",
-              credentials: "include",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ idToken: credential }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-              throw new Error(data.message || "Google sign-in failed.");
-            }
-
-            setUser(data.user);
-          } catch (error) {
-            if (!cancelled) {
-              setAuthError(
-                error instanceof Error ? error.message : "Google sign-in failed.",
-              );
-            }
-          } finally {
-            if (!cancelled) {
-              setAuthLoading(false);
-            }
-          }
+          // The store sends the token to the NestJS backend.
+          await signInWithGoogle(idToken);
         },
       });
 
-      googleButtonRef.current.replaceChildren();
+      buttonElement.replaceChildren();
 
-      window.google.accounts.id.renderButton(googleButtonRef.current, {
+      google.accounts.id.renderButton(buttonElement, {
         theme: "outline",
         size: "large",
         shape: "pill",
@@ -118,6 +89,7 @@ export default function Header() {
           if (interval !== undefined) {
             window.clearInterval(interval);
           }
+
           initializeGoogleSignIn();
         }
       }, 100);
@@ -130,14 +102,19 @@ export default function Header() {
         window.clearInterval(interval);
       }
     };
-  }, []);
+  }, [clearError, signInWithGoogle]);
+
+  async function handleSignOut() {
+    clearError();
+    await signOut();
+  }
 
   return (
     <header className="sticky top-0 z-30 flex min-h-19 w-full items-center justify-between gap-4 border-b border-stone-200/80 bg-[#fcfaf7]/90 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
       {/* Left: Welcome message */}
       <div className="flex items-center gap-3 text-[11px] text-[#6b5d52]">
         <span className="hidden sm:inline">Good morning</span>
-        <span className="hidden sm:inline text-[#d4a574]">·</span>
+        <span className="hidden text-[#d4a574] sm:inline">·</span>
         <span className="italic">47 readers browsing right now</span>
       </div>
 
@@ -156,26 +133,37 @@ export default function Header() {
 
         <div className="relative flex min-h-10 items-center justify-center">
           {user ? (
-            <div className="flex max-w-47.5 items-center gap-3 rounded-full border border-stone-200 bg-white py-1.5 pl-1.5 pr-3 shadow-sm">
-              {user.picture ? (
-                <img
-                  src={user.picture}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                  className="h-9 w-9 shrink-0 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-sm font-semibold text-amber-800">
-                  {(user.name || user.email).charAt(0).toUpperCase()}
-                </div>
-              )}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex max-w-47.5 items-center gap-3 rounded-full border border-stone-200 bg-white py-1.5 pl-1.5 pr-3 shadow-sm">
+                {user.picture ? (
+                  <img
+                    src={user.picture}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    className="h-9 w-9 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-sm font-semibold text-amber-800">
+                    {(user.name || user.email)?.charAt(0).toUpperCase()}
+                  </div>
+                )}
 
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-stone-800">
-                  {user.name || user.email}
-                </p>
-                <p className="text-[11px] text-stone-400">BookHeaven reader</p>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-stone-800">
+                    {user.name || user.email}
+                  </p>
+                  <p className="text-[11px] text-stone-400">BookNest reader</p>
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => void handleSignOut()}
+                disabled={authLoading}
+                className="rounded-full border border-stone-200 bg-white px-3 py-2 text-xs font-medium text-stone-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:text-sm"
+              >
+                {authLoading ? "Signing out..." : "Sign out"}
+              </button>
             </div>
           ) : (
             <div className="flex min-h-10 items-center justify-center">
@@ -195,14 +183,25 @@ export default function Header() {
                     </span>
                   )}
 
-                  <div
-                    ref={googleButtonRef}
-                    className="max-w-full overflow-hidden"
-                  />
+                  {!GOOGLE_CLIENT_ID && (
+                    <span className="text-xs text-red-600">
+                      Sign-in is not configured.
+                    </span>
+                  )}
                 </>
               )}
             </div>
           )}
+
+          {/* Keep this element mounted so the Google button survives sign-out. */}
+          <div
+            ref={googleButtonRef}
+            className={
+              user || authLoading || !GOOGLE_CLIENT_ID
+                ? "hidden"
+                : "max-w-full overflow-hidden"
+            }
+          />
         </div>
       </div>
 
@@ -211,14 +210,19 @@ export default function Header() {
           role="alert"
           className="absolute right-4 top-[calc(100%+8px)] z-50 max-w-[calc(100vw-2rem)] rounded-xl border border-red-200 bg-white px-4 py-3 text-sm text-red-700 shadow-lg sm:right-6"
         >
-          {authError}
-        </div>
-      )}
+          <div className="flex items-start gap-3">
+            <span className="flex-1">{authError}</span>
 
-      {!GOOGLE_CLIENT_ID && (
-        <span className="sr-only">
-          Google sign-in is not configured. Check GOOGLE_CLIENT_ID.
-        </span>
+            <button
+              type="button"
+              onClick={clearError}
+              aria-label="Dismiss authentication error"
+              className="font-semibold text-red-500 hover:text-red-800"
+            >
+              ×
+            </button>
+          </div>
+        </div>
       )}
     </header>
   );

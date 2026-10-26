@@ -14,8 +14,7 @@ import { Input } from "@/components/ui/input";
 import { API_BASE_URL } from "@/constants/baseUrl";
 import BookCard from "@/components/books/BookCard";
 import type { BookItem } from "@/types/book";
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
+import { useBookStore } from "@/stores/bookStore";
 
 const SHELF_PICKS = [
   { label: "Cozy mysteries", emoji: "🔎" },
@@ -26,12 +25,16 @@ const SHELF_PICKS = [
 ];
 
 export default function HomePage() {
-  const [query, setQuery] = useState("");
-  const [books, setBooks] = useState<BookItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [searched, setSearched] = useState(false);
+  const query = useBookStore((state) => state.query);
+  const books = useBookStore((state) => state.books);
+  const loading = useBookStore((state) => state.loading);
+  const error = useBookStore((state) => state.error);
+  const searched = useBookStore((state) => state.searched);
+
+  const setQuery = useBookStore((state) => state.setQuery);
+  const runBookSearch = useBookStore((state) => state.searchBooks);
   const [savedBookIds, setSavedBookIds] = useState<Set<string>>(new Set());
+
   const [toast, setToast] = useState<{
     text: string;
     type: "success" | "error";
@@ -58,41 +61,11 @@ export default function HomePage() {
 
   async function searchBooks(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!query.trim()) {
-      setError("Type something — a title, an author, a feeling.");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    setSearched(true);
-
-    try {
-      const response = await fetch(
-        `${API_URL}/books/search?q=${encodeURIComponent(query.trim())}`,
-      );
-      if (!response.ok)
-        throw new Error("The shelves are quiet right now. Try again?");
-      const data: BookItem[] = await response.json();
-      setBooks(data);
-    } catch (err) {
-      setBooks([]);
-      setError(err instanceof Error ? err.message : "Something went sideways.");
-    } finally {
-      setLoading(false);
-    }
+    await runBookSearch();
   }
 
   function quickSearch(term: string) {
-    setQuery(term);
-    setSearched(true);
-    setLoading(true);
-    setError("");
-    fetch(`${API_URL}/books/search?q=${encodeURIComponent(term)}`)
-      .then((r) => r.json())
-      .then((data: BookItem[]) => setBooks(data))
-      .catch(() => setError("Couldn't reach the shelves."))
-      .finally(() => setLoading(false));
+    void runBookSearch(term);
   }
 
   async function saveBook(book: BookItem) {
@@ -115,7 +88,9 @@ export default function HomePage() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error("Sign in with Google in the top bar to save books to your shelf.");
+          throw new Error(
+            "Sign in with Google in the top bar to save books to your shelf.",
+          );
         }
         throw new Error(data.message || "Could not save this book.");
       }
@@ -127,7 +102,8 @@ export default function HomePage() {
       });
       setTimeout(() => setToast(null), 3500);
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "Something went wrong.";
+      const msg =
+        error instanceof Error ? error.message : "Something went wrong.";
       setToast({
         text: msg,
         type: "error",

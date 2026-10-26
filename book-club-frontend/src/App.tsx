@@ -6,10 +6,12 @@ import HomePage from "./pages/Home";
 import MyShelf from "./pages/MyShelf";
 import BookClubs from "./pages/BookClubs";
 import ClubDetails from "./pages/ClubDetails";
+import AuthInitializer from "./components/auth/AuthInitializer";
 
 export default function App() {
   return (
     <div className="min-h-screen bg-[#f5f0e8] text-[#2b2420] selection:bg-[#d4a574] selection:text-[#2b2420]">
+      <AuthInitializer />
       <Sidebar />
       <div className="flex min-h-screen flex-col md:ml-60 xl:ml-65">
         <Header />

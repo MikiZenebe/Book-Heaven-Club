@@ -85,4 +85,31 @@ export class AuthService {
       throw new UnauthorizedException('Unable to verify your Google sign-in.');
     }
   }
+
+  async getCurrentUser(accessToken: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync<{ sub: string }>(
+        accessToken,
+      );
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+        select: {
+          id: true,
+          googleId: true,
+          email: true,
+          name: true,
+          picture: true,
+        },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('User no longer exists.');
+      }
+
+      return user;
+    } catch {
+      throw new UnauthorizedException('Session is invalid or expired.');
+    }
+  }
 }

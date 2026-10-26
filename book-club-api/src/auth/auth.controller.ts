@@ -2,11 +2,23 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Post,
+  Req,
   Res,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
-import type { response, Response } from 'express';
+import type { Request, response, Response } from 'express';
+
+const COOKIE_NAME = 'booknest_session';
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: '/',
+};
 
 @Controller('auth')
 export class AuthController {
@@ -37,18 +49,22 @@ export class AuthController {
     };
   }
 
+  @Get('me')
+  async getCurrentUser(@Req() request: Request) {
+    const accessToken = request.cookies?.[COOKIE_NAME];
+    if (!accessToken) {
+      throw new UnauthorizedException('You are not signed in.');
+    }
+
+    const user = await this.authService.getCurrentUser(accessToken);
+
+    return { user };
+  }
+
   @Post('logout')
   logout(@Res({ passthrough: true }) response: Response) {
-    response.clearCookie('bookheaven_session', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-    });
+    response.clearCookie(COOKIE_NAME, cookieOptions);
 
-    return {
-      success: true,
-      message: 'Logged out successfully',
-    };
+    return { message: 'Signed out successfully.' };
   }
 }
