@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Bookmark, Compass, Library, Users } from "lucide-react";
+import { Compass, Library, Users } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import { useShelfStore } from "@/stores/shelfStore";
@@ -37,11 +37,6 @@ export default function Sidebar() {
       label: "Book clubs",
       href: "/book-clubs",
       icon: Users,
-    },
-    {
-      label: "Saved",
-      href: "#saved",
-      icon: Bookmark,
     },
   ];
 
@@ -100,11 +95,6 @@ export default function Sidebar() {
           <p className="mt-3 text-[10px] tracking-[2px] text-[#8b4513]">
             — J.L. BORGES
           </p>
-        </div>
-
-        <div className="mt-6 flex items-center gap-2 text-[10px] text-[#6b5d52]">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#4a5d4a]" />
-          made slowly, in brooklyn
         </div>
       </div>
     </aside>

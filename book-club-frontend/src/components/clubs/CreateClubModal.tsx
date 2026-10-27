@@ -1,5 +1,13 @@
 import { useState, useEffect, useCallback, type FormEvent } from "react";
-import { X, Sparkles, Globe, Lock, LoaderCircle, BookOpen, Users } from "lucide-react";
+import {
+  X,
+  Sparkles,
+  Globe,
+  Lock,
+  LoaderCircle,
+  BookOpen,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface CreateClubModalProps {
@@ -15,11 +23,26 @@ interface CreateClubModalProps {
 }
 
 const INSPIRATION_THEMES = [
-  { label: "Classic Literature", desc: "Exploring timeless literary masterpieces" },
-  { label: "Sci-Fi & Speculative", desc: "Distant worlds, future technologies, and cosmic wonders" },
-  { label: "Cozy Mystery Circle", desc: "Page-turning whodunits and tea-sipping detectives" },
-  { label: "Non-Fiction & Memoirs", desc: "Fascinating true stories, biographies, and essays" },
-  { label: "Modern Literary Fiction", desc: "Contemporary voices and award-winning fiction" },
+  {
+    label: "Classic Literature",
+    desc: "Exploring timeless literary masterpieces",
+  },
+  {
+    label: "Sci-Fi & Speculative",
+    desc: "Distant worlds, future technologies, and cosmic wonders",
+  },
+  {
+    label: "Cozy Mystery Circle",
+    desc: "Page-turning whodunits and tea-sipping detectives",
+  },
+  {
+    label: "Non-Fiction & Memoirs",
+    desc: "Fascinating true stories, biographies, and essays",
+  },
+  {
+    label: "Modern Literary Fiction",
+    desc: "Contemporary voices and award-winning fiction",
+  },
 ];
 
 export default function CreateClubModal({
@@ -52,6 +75,18 @@ export default function CreateClubModal({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, loading, handleClose]);
+
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -126,14 +161,18 @@ export default function CreateClubModal({
             <span className="text-[10px] font-semibold tracking-[2px] text-[#8b4513] uppercase">
               New Reading Circle
             </span>
-            <h3 id="create-club-title" className="font-serif text-2xl font-bold tracking-tight text-[#2b2420] sm:text-3xl">
+            <h3
+              id="create-club-title"
+              className="font-serif text-2xl font-bold tracking-tight text-[#2b2420] sm:text-3xl"
+            >
               Create a Book Club
             </h3>
           </div>
         </div>
 
         <p className="mt-3 text-sm text-[#6b5d52] leading-relaxed">
-          Establish a dedicated reading space to share books, discuss chapter highlights, and explore great writing together.
+          Establish a dedicated reading space to share books, discuss chapter
+          highlights, and explore great writing together.
         </p>
 
         {/* Quick Inspiration Pills */}
@@ -172,7 +211,10 @@ export default function CreateClubModal({
           {/* Club Name */}
           <div>
             <div className="flex items-center justify-between">
-              <label htmlFor="club-name" className="text-xs font-semibold tracking-wider uppercase text-[#2b2420]">
+              <label
+                htmlFor="club-name"
+                className="text-xs font-semibold tracking-wider uppercase text-[#2b2420]"
+              >
                 Club Name <span className="text-rose-500">*</span>
               </label>
               <span className="text-[11px] text-[#6b5d52]/80">
@@ -196,7 +238,10 @@ export default function CreateClubModal({
           {/* Description */}
           <div>
             <div className="flex items-center justify-between">
-              <label htmlFor="club-description" className="text-xs font-semibold tracking-wider uppercase text-[#2b2420]">
+              <label
+                htmlFor="club-description"
+                className="text-xs font-semibold tracking-wider uppercase text-[#2b2420]"
+              >
                 Description & Reading Focus
               </label>
               <span className="text-[11px] text-[#6b5d52]/80">
@@ -235,9 +280,13 @@ export default function CreateClubModal({
                   onChange={() => setVisibility("PUBLIC")}
                   className="sr-only"
                 />
-                <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
-                  visibility === "PUBLIC" ? "bg-[#8b4513] text-white" : "bg-[#f5f0e8] text-[#6b5d52]"
-                }`}>
+                <div
+                  className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                    visibility === "PUBLIC"
+                      ? "bg-[#8b4513] text-white"
+                      : "bg-[#f5f0e8] text-[#6b5d52]"
+                  }`}
+                >
                   <Globe size={16} />
                 </div>
                 <div>
@@ -265,9 +314,13 @@ export default function CreateClubModal({
                   onChange={() => setVisibility("PRIVATE")}
                   className="sr-only"
                 />
-                <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
-                  visibility === "PRIVATE" ? "bg-[#8b4513] text-white" : "bg-[#f5f0e8] text-[#6b5d52]"
-                }`}>
+                <div
+                  className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                    visibility === "PRIVATE"
+                      ? "bg-[#8b4513] text-white"
+                      : "bg-[#f5f0e8] text-[#6b5d52]"
+                  }`}
+                >
                   <Lock size={16} />
                 </div>
                 <div>

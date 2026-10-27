@@ -45,7 +45,7 @@ export default function Header() {
   const signInWithGoogle = useAuthStore((state) => state.signInWithGoogle);
   const signOut = useAuthStore((state) => state.signOut);
   const clearError = useAuthStore((state) => state.clearError);
-
+  console.log(user);
   useEffect(() => {
     let cancelled = false;
     let interval: number | undefined;
@@ -134,25 +134,29 @@ export default function Header() {
         <div className="relative flex min-h-10 items-center justify-center">
           {user ? (
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="flex max-w-47.5 items-center gap-3 rounded-full border border-stone-200 bg-white py-1.5 pl-1.5 pr-3 shadow-sm">
-                {user.picture ? (
+              <div className="flex max-w-52 items-center gap-3 rounded-full border border-stone-200 bg-white py-1.5 pl-1.5 pr-3 shadow-sm">
+                {user.user.picture ? (
                   <img
-                    src={user.picture}
+                    src={user.user.picture}
                     alt=""
                     referrerPolicy="no-referrer"
                     className="h-9 w-9 shrink-0 rounded-full object-cover"
                   />
                 ) : (
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-sm font-semibold text-amber-800">
-                    {(user.name || user.email)?.charAt(0).toUpperCase()}
+                    {(user.user.name || user.user.email)
+                      ?.charAt(0)
+                      .toUpperCase()}
                   </div>
                 )}
 
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-stone-800">
-                    {user.name || user.email}
+                    {user.user.name || user.user.email}
                   </p>
-                  <p className="text-[11px] text-stone-400">BookNest reader</p>
+                  <p className="text-[11px] text-stone-400">
+                    {user.user.email}
+                  </p>
                 </div>
               </div>
 

@@ -235,4 +235,41 @@ export class ClubsService {
       },
     });
   }
+
+  async removeDiscussion(
+    userId: string,
+    discussionId: string,
+    clubId?: string,
+  ) {
+    const discussion = await this.prisma.bookDiscussion.findUnique({
+      where: { id: discussionId },
+      include: {
+        club: {
+          select: { ownerId: true },
+        },
+      },
+    });
+
+    if (!discussion) {
+      throw new NotFoundException('Discussion not found.');
+    }
+
+    if (clubId && discussion.clubId !== clubId) {
+      throw new NotFoundException('Discussion not found in this club.');
+    }
+
+    const isAuthor = discussion.userId === userId;
+    const isClubOwner = discussion.club.ownerId === userId;
+
+    if (!isAuthor && !isClubOwner) {
+      throw new ForbiddenException('You can only delete your own discussions.');
+    }
+
+    await this.prisma.bookDiscussion.delete({
+      where: { id: discussionId },
+    });
+
+    return { message: 'Discussion deleted successfully.' };
+  }
 }
+

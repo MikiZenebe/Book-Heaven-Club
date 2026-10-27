@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -127,4 +128,15 @@ export class ClubsController {
 
     return this.clubsService.addDiscussion(id, req.user.sub, body.content);
   }
+
+  @UseGuards(SessionAuthGuard)
+  @Delete([':id/discussions/:discussionId', 'discussions/:discussionId'])
+  removeDiscussion(
+    @Req() req: AuthRequest,
+    @Param('discussionId') discussionId: string,
+    @Param('id') id?: string,
+  ) {
+    return this.clubsService.removeDiscussion(req.user.sub, discussionId, id);
+  }
 }
+

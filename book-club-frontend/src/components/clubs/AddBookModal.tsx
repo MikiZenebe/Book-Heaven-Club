@@ -75,6 +75,18 @@ export default function AddBookModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, loading, handleClose]);
 
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {

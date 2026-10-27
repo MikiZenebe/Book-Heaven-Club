@@ -8,6 +8,9 @@ interface ClubDiscussionsTabProps {
   onOpenNewDiscussion: () => void;
   onJoinClub: () => void;
   isJoining: boolean;
+  currentUserId?: string;
+  clubOwnerId?: string;
+  onDeleteDiscussion?: (id: string) => Promise<void> | void;
 }
 
 export default function ClubDiscussionsTab({
@@ -16,6 +19,9 @@ export default function ClubDiscussionsTab({
   onOpenNewDiscussion,
   onJoinClub,
   isJoining,
+  currentUserId,
+  clubOwnerId,
+  onDeleteDiscussion,
 }: ClubDiscussionsTabProps) {
   return (
     <section className="space-y-6">
@@ -80,7 +86,13 @@ export default function ClubDiscussionsTab({
       ) : (
         <div className="space-y-4">
           {discussions.map((post) => (
-            <ClubDiscussionCard key={post.id} post={post} />
+            <ClubDiscussionCard
+              key={post.id}
+              post={post}
+              currentUserId={currentUserId}
+              clubOwnerId={clubOwnerId}
+              onDelete={onDeleteDiscussion}
+            />
           ))}
         </div>
       )}

@@ -12,6 +12,7 @@ import {
   LoaderCircle,
 } from "lucide-react";
 import { API_BASE_URL } from "@/constants/baseUrl";
+import { useAuthStore } from "@/stores/authStore";
 import type { BookClub, ClubBookItem, ClubDiscussion } from "@/types/book";
 
 // Subcomponents
@@ -26,6 +27,8 @@ type Tab = "overview" | "books" | "discussions";
 
 export default function ClubDetails() {
   const { id } = useParams<{ id: string }>();
+  const user = useAuthStore((state) => state.user);
+  const currentUserId = user?.user?.id;
 
   const [club, setClub] = useState<BookClub | null>(null);
   const [books, setBooks] = useState<ClubBookItem[]>([]);
@@ -257,6 +260,35 @@ export default function ClubDetails() {
       throw err;
     } finally {
       setNewDiscussionLoading(false);
+    }
+  }
+
+  // Handle deleting a discussion
+  async function handleDeleteDiscussion(discussionId: string) {
+    if (!id) return;
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/clubs/${id}/discussions/${discussionId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        },
+      );
+
+      const resData = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(resData?.message || "Could not delete discussion.");
+      }
+
+      setDiscussions((prev) => prev.filter((d) => d.id !== discussionId));
+      showToast("Discussion deleted successfully.", "success");
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to delete discussion.";
+      showToast(msg, "error");
+      throw err;
     }
   }
 
@@ -499,6 +531,8 @@ export default function ClubDetails() {
           onOpenAddBook={() => setIsAddBookOpen(true)}
           onOpenNewDiscussion={() => setIsNewDiscussionOpen(true)}
           onSwitchTab={(tab) => setActiveTab(tab)}
+          currentUserId={currentUserId}
+          onDeleteDiscussion={handleDeleteDiscussion}
         />
       )}
 
@@ -521,6 +555,9 @@ export default function ClubDetails() {
           onOpenNewDiscussion={() => setIsNewDiscussionOpen(true)}
           onJoinClub={handleJoinClub}
           isJoining={isJoining}
+          currentUserId={currentUserId}
+          clubOwnerId={club.ownerId}
+          onDeleteDiscussion={handleDeleteDiscussion}
         />
       )}
 

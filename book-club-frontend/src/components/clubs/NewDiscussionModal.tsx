@@ -46,6 +46,18 @@ export default function NewDiscussionModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, loading, handleClose]);
 
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -54,7 +66,9 @@ export default function NewDiscussionModal({
 
     const trimmed = content.trim();
     if (!trimmed) {
-      setLocalError("Please write a thought or question to start the discussion.");
+      setLocalError(
+        "Please write a thought or question to start the discussion.",
+      );
       return;
     }
     if (trimmed.length > 2000) {
@@ -125,7 +139,8 @@ export default function NewDiscussionModal({
         </div>
 
         <p className="mt-3 text-sm text-[#6b5d52] leading-relaxed">
-          Share reflections, pose questions, or discuss key moments with fellow reading circle members.
+          Share reflections, pose questions, or discuss key moments with fellow
+          reading circle members.
         </p>
 
         {/* Conversation Starters */}
@@ -167,7 +182,8 @@ export default function NewDiscussionModal({
                 htmlFor="discussion-content"
                 className="block text-xs font-semibold uppercase tracking-wider text-[#2b2420]"
               >
-                Your Thoughts or Question <span className="text-rose-500">*</span>
+                Your Thoughts or Question{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <span className="text-[11px] text-[#6b5d52]/80">
                 {content.length}/2000

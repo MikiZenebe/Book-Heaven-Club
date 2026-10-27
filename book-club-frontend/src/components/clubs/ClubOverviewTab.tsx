@@ -11,6 +11,8 @@ interface ClubOverviewTabProps {
   onOpenAddBook: () => void;
   onOpenNewDiscussion: () => void;
   onSwitchTab: (tab: "books" | "discussions") => void;
+  currentUserId?: string;
+  onDeleteDiscussion?: (id: string) => Promise<void> | void;
 }
 
 export default function ClubOverviewTab({
@@ -21,6 +23,8 @@ export default function ClubOverviewTab({
   onOpenAddBook,
   onOpenNewDiscussion,
   onSwitchTab,
+  currentUserId,
+  onDeleteDiscussion,
 }: ClubOverviewTabProps) {
   return (
     <div className="space-y-10">
@@ -187,7 +191,13 @@ export default function ClubOverviewTab({
         ) : (
           <div className="mt-6 space-y-3.5">
             {discussions.slice(0, 3).map((post) => (
-              <ClubDiscussionCard key={post.id} post={post} />
+              <ClubDiscussionCard
+                key={post.id}
+                post={post}
+                currentUserId={currentUserId}
+                clubOwnerId={club.ownerId}
+                onDelete={onDeleteDiscussion}
+              />
             ))}
           </div>
         )}
