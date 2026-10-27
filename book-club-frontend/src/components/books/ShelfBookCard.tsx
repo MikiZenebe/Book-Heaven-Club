@@ -4,7 +4,7 @@ import BookCard from "./BookCard";
 import StarRating from "../StarRating";
 import type { BookItem } from "@/types/book";
 import { useState } from "react";
-import type { ShelfBook } from "@/pages/MyShelf";
+import type { ShelfBook } from "@/types/shelf";
 
 interface ShelfBookCardProps {
   book: ShelfBook;

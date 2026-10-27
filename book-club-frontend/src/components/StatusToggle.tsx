@@ -1,4 +1,4 @@
-import type { ShelfBook } from "@/pages/MyShelf";
+import type { ShelfBook } from "@/types/shelf";
 
 const STATUS_OPTIONS: {
   value: ShelfBook["status"];
