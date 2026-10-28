@@ -9,16 +9,27 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
-import type { Request, response, Response } from 'express';
+import type { Request, Response } from 'express';
 
 const COOKIE_NAME = 'booknest_session';
 
-const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
-  path: '/',
-};
+function getCookieOptions() {
+  const isProduction = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+    path: '/',
+  };
+}
+
+function extractToken(request: Request): string | undefined {
+  const authHeader = request.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7).trim();
+  }
+  return request.cookies?.[COOKIE_NAME];
+}
 
 @Controller('auth')
 export class AuthController {
@@ -35,23 +46,21 @@ export class AuthController {
 
     const result = await this.authService.signInWithGoogle(body.idToken);
 
-    response.cookie('booknest_session', result.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
+    response.cookie(COOKIE_NAME, result.accessToken, {
+      ...getCookieOptions(),
       maxAge: 24 * 60 * 60 * 1000,
     });
 
     return {
       success: true,
       user: result.user,
+      accessToken: result.accessToken,
     };
   }
 
   @Get('me')
   async getCurrentUser(@Req() request: Request) {
-    const accessToken = request.cookies?.[COOKIE_NAME];
+    const accessToken = extractToken(request);
     if (!accessToken) {
       throw new UnauthorizedException('You are not signed in.');
     }
@@ -63,7 +72,7 @@ export class AuthController {
 
   @Post('logout')
   logout(@Res({ passthrough: true }) response: Response) {
-    response.clearCookie(COOKIE_NAME, cookieOptions);
+    response.clearCookie(COOKIE_NAME, getCookieOptions());
 
     return { message: 'Signed out successfully.' };
   }

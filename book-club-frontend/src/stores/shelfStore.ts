@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { API_BASE_URL } from "@/constants/baseUrl";
+import { authFetch } from "@/lib/api";
 import type {
   ShelfBook,
   AddShelfBookInput,
@@ -41,9 +41,7 @@ export const useShelfStore = create<ShelfStore>()((set) => ({
     set({ loading: true, error: null });
 
     try {
-      const response = await fetch(`${API_BASE_URL}/bookshelf`, {
-        credentials: "include",
-      });
+      const response = await authFetch("/bookshelf");
 
       if (!response.ok) {
         throw new Error(
@@ -72,9 +70,8 @@ export const useShelfStore = create<ShelfStore>()((set) => ({
     set({ saving: true, error: null });
 
     try {
-      const response = await fetch(`${API_BASE_URL}/bookshelf`, {
+      const response = await authFetch("/bookshelf", {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(book),
       });
@@ -110,11 +107,10 @@ export const useShelfStore = create<ShelfStore>()((set) => ({
     set({ saving: true, error: null });
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/bookshelf/${encodeURIComponent(id)}`,
+      const response = await authFetch(
+        `/bookshelf/${encodeURIComponent(id)}`,
         {
           method: "PATCH",
-          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updates),
         },
@@ -146,11 +142,10 @@ export const useShelfStore = create<ShelfStore>()((set) => ({
     set({ saving: true, error: null });
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/bookshelf/${encodeURIComponent(id)}`,
+      const response = await authFetch(
+        `/bookshelf/${encodeURIComponent(id)}`,
         {
           method: "DELETE",
-          credentials: "include",
         },
       );
 

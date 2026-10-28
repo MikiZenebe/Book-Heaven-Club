@@ -3,8 +3,29 @@ import { create } from "zustand";
 import { API_BASE_URL } from "@/constants/baseUrl";
 import type { AuthUser } from "@/types/auth";
 
+const TOKEN_KEY = "booknest_token";
+const USER_KEY = "booknest_user";
+
+function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function getStoredUser(): AuthUser | null {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 type AuthStore = {
   user: AuthUser | null;
+  token: string | null;
   loading: boolean;
   error: string | null;
 
@@ -28,22 +49,36 @@ async function getErrorMessage(
 }
 
 export const useAuthStore = create<AuthStore>()((set) => ({
-  user: null,
+  user: getStoredUser(),
+  token: getStoredToken(),
   loading: false,
   error: null,
 
   // Restore the session after a page refresh.
   loadCurrentUser: async () => {
+    const token = getStoredToken();
     set({ loading: true, error: null });
 
     try {
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${API_BASE_URL}/auth/me`, {
         method: "GET",
         credentials: "include",
+        headers,
       });
 
       if (response.status === 401) {
-        set({ user: null });
+        try {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+        } catch {
+          /* empty */
+        }
+        set({ user: null, token: null });
         return;
       }
 
@@ -53,11 +88,19 @@ export const useAuthStore = create<AuthStore>()((set) => ({
         );
       }
 
-      const user: AuthUser = await response.json();
-      set({ user, error: null });
+      const data = await response.json();
+      const authUser: AuthUser =
+        data.user && data.user.id ? { user: data.user } : data;
+
+      try {
+        localStorage.setItem(USER_KEY, JSON.stringify(authUser));
+      } catch {
+        /* empty */
+      }
+
+      set({ user: authUser, error: null });
     } catch (error) {
       set({
-        user: null,
         error:
           error instanceof Error
             ? error.message
@@ -91,9 +134,25 @@ export const useAuthStore = create<AuthStore>()((set) => ({
         );
       }
 
-      const user: AuthUser = await response.json();
+      const data = await response.json();
+      const authUser: AuthUser =
+        data.user && data.user.id ? { user: data.user } : data;
+      const token: string | null = data.accessToken || null;
 
-      set({ user, error: null });
+      if (token) {
+        try {
+          localStorage.setItem(TOKEN_KEY, token);
+        } catch {
+          /* empty */
+        }
+      }
+      try {
+        localStorage.setItem(USER_KEY, JSON.stringify(authUser));
+      } catch {
+        /* empty */
+      }
+
+      set({ user: authUser, token, error: null });
     } catch (error) {
       set({
         error:
@@ -109,31 +168,29 @@ export const useAuthStore = create<AuthStore>()((set) => ({
   // End the server-side session.
   signOut: async () => {
     set({ loading: true, error: null });
+    const token = getStoredToken();
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          await getErrorMessage(
-            response,
-            "Could not sign out. Please try again.",
-          ),
-        );
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
       }
 
-      set({ user: null, error: null });
-    } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : "Could not sign out.",
+      await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers,
       });
-
-      throw error;
+    } catch {
+      // Best effort logout on server
     } finally {
-      set({ loading: false });
+      try {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+      } catch {
+        /* empty */
+      }
+      set({ user: null, token: null, loading: false, error: null });
     }
   },
 

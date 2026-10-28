@@ -11,7 +11,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { API_BASE_URL } from "@/constants/baseUrl";
+import { authFetch } from "@/lib/api";
 import BookCard from "@/components/books/BookCard";
 import type { BookItem } from "@/types/book";
 import { useBookStore } from "@/stores/bookStore";
@@ -42,7 +42,7 @@ export default function HomePage() {
 
   // Load existing shelf book IDs so saved status is accurately displayed
   useEffect(() => {
-    fetch(`${API_BASE_URL}/bookshelf`, { credentials: "include" })
+    authFetch("/bookshelf")
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data)) {
@@ -70,9 +70,8 @@ export default function HomePage() {
 
   async function saveBook(book: BookItem) {
     try {
-      const response = await fetch(`${API_BASE_URL}/bookshelf`, {
+      const response = await authFetch("/bookshelf", {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },

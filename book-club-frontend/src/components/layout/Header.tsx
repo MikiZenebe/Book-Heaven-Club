@@ -45,7 +45,7 @@ export default function Header() {
   const signInWithGoogle = useAuthStore((state) => state.signInWithGoogle);
   const signOut = useAuthStore((state) => state.signOut);
   const clearError = useAuthStore((state) => state.clearError);
-  console.log(user);
+
   useEffect(() => {
     let cancelled = false;
     let interval: number | undefined;

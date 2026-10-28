@@ -17,7 +17,13 @@ export class SessionAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const token = request.cookies?.booknest_session;
+    const authHeader = request.headers.authorization;
+    const bearerToken =
+      authHeader && authHeader.startsWith('Bearer ')
+        ? authHeader.substring(7).trim()
+        : undefined;
+
+    const token = bearerToken || request.cookies?.booknest_session;
 
     if (!token) {
       throw new UnauthorizedException('Please sign in first.');

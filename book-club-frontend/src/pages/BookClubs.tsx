@@ -14,7 +14,7 @@ import {
   AlertCircle,
   LogIn,
 } from "lucide-react";
-import { API_BASE_URL } from "@/constants/baseUrl";
+import { authFetch } from "@/lib/api";
 import type { BookClub } from "@/types/book";
 import ClubCard from "@/components/clubs/ClubCard";
 import CreateClubModal from "@/components/clubs/CreateClubModal";
@@ -60,8 +60,8 @@ export default function BookClubs() {
   async function refreshClubs() {
     try {
       const [pubRes, myRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/clubs/public`),
-        fetch(`${API_BASE_URL}/clubs/mine`, { credentials: "include" }),
+        authFetch("/clubs/public"),
+        authFetch("/clubs/mine"),
       ]);
 
       if (pubRes.ok) {
@@ -89,8 +89,8 @@ export default function BookClubs() {
     async function loadInitialClubs() {
       try {
         const [pubRes, myRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/clubs/public`),
-          fetch(`${API_BASE_URL}/clubs/mine`, { credentials: "include" }),
+          authFetch("/clubs/public"),
+          authFetch("/clubs/mine"),
         ]);
 
         if (pubRes.ok) {
@@ -140,9 +140,8 @@ export default function BookClubs() {
     setCreateError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/clubs`, {
+      const response = await authFetch("/clubs", {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
@@ -178,9 +177,8 @@ export default function BookClubs() {
     setJoiningClubId(clubId);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/clubs/${clubId}/join`, {
+      const response = await authFetch(`/clubs/${clubId}/join`, {
         method: "POST",
-        credentials: "include",
       });
 
       const data = await response.json();

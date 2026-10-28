@@ -11,7 +11,7 @@ import {
   UserPlus,
   LoaderCircle,
 } from "lucide-react";
-import { API_BASE_URL } from "@/constants/baseUrl";
+import { authFetch } from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
 import type { BookClub, ClubBookItem, ClubDiscussion } from "@/types/book";
 
@@ -68,8 +68,8 @@ export default function ClubDetails() {
     if (!id) return;
     try {
       const [pubRes, myRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/clubs/public`),
-        fetch(`${API_BASE_URL}/clubs/mine`, { credentials: "include" }),
+        authFetch("/clubs/public"),
+        authFetch("/clubs/mine"),
       ]);
 
       const publicClubs: BookClub[] = pubRes.ok ? await pubRes.json() : [];
@@ -86,12 +86,8 @@ export default function ClubDetails() {
 
         if (userIsMember) {
           const [booksRes, discussionsRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/clubs/${id}/books`, {
-              credentials: "include",
-            }),
-            fetch(`${API_BASE_URL}/clubs/${id}/discussions`, {
-              credentials: "include",
-            }),
+            authFetch(`/clubs/${id}/books`),
+            authFetch(`/clubs/${id}/discussions`),
           ]);
 
           if (booksRes.ok) {
@@ -125,8 +121,8 @@ export default function ClubDetails() {
 
       try {
         const [pubRes, myRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/clubs/public`),
-          fetch(`${API_BASE_URL}/clubs/mine`, { credentials: "include" }),
+          authFetch("/clubs/public"),
+          authFetch("/clubs/mine"),
         ]);
 
         const publicClubs: BookClub[] = pubRes.ok ? await pubRes.json() : [];
@@ -150,12 +146,8 @@ export default function ClubDetails() {
 
           if (userIsMember) {
             const [booksRes, discussionsRes] = await Promise.all([
-              fetch(`${API_BASE_URL}/clubs/${id}/books`, {
-                credentials: "include",
-              }),
-              fetch(`${API_BASE_URL}/clubs/${id}/discussions`, {
-                credentials: "include",
-              }),
+              authFetch(`/clubs/${id}/books`),
+              authFetch(`/clubs/${id}/discussions`),
             ]);
 
             if (booksRes.ok) {
@@ -203,9 +195,8 @@ export default function ClubDetails() {
     setAddBookError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/clubs/${id}/books`, {
+      const response = await authFetch(`/clubs/${id}/books`, {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
@@ -237,9 +228,8 @@ export default function ClubDetails() {
     setNewDiscussionError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/clubs/${id}/discussions`, {
+      const response = await authFetch(`/clubs/${id}/discussions`, {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
       });
@@ -268,11 +258,10 @@ export default function ClubDetails() {
     if (!id) return;
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/clubs/${id}/discussions/${discussionId}`,
+      const response = await authFetch(
+        `/clubs/${id}/discussions/${discussionId}`,
         {
           method: "DELETE",
-          credentials: "include",
         },
       );
 
@@ -298,9 +287,8 @@ export default function ClubDetails() {
     setIsJoining(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/clubs/${id}/join`, {
+      const response = await authFetch(`/clubs/${id}/join`, {
         method: "POST",
-        credentials: "include",
       });
 
       const resData = await response.json().catch(() => null);
