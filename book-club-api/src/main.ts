@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule, ObserveInstrument } from './app.module.js';
 import cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -40,6 +41,11 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   const port = Number(process.env.PORT) || 3000;
+
+  const apps = await NestFactory.create<NestExpressApplication>(AppModule, {
+    instrument: ObserveInstrument,
+  });
+  apps.enableShutdownHooks();
 
   await app.listen(port);
 
