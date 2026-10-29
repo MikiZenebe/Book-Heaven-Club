@@ -8,6 +8,8 @@ async function bootstrap() {
     instrument: ObserveInstrument,
   });
 
+  app.enableShutdownHooks();
+
   app.use(cookieParser());
 
   const allowedOrigins = [
@@ -41,11 +43,6 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   const port = Number(process.env.PORT) || 3000;
-
-  const apps = await NestFactory.create<NestExpressApplication>(AppModule, {
-    instrument: ObserveInstrument,
-  });
-  apps.enableShutdownHooks();
 
   await app.listen(port);
 
